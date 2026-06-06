@@ -179,9 +179,9 @@ python scanner.py
 ## 🗺️ Roadmap
 
 - [X] Argomenti CLI con `argparse` (target, range, threads, timeout)
-- [ ] Banner grabbing per identificare i servizi
+- [X] Banner grabbing per identificare i servizi
 - [ ] Output su file `.json` / `.txt`
-- [ ] Progress bar con `tqdm`
+- [X] Progress bar con `tqdm`
 - [ ] Supporto UDP scan
 - [ ] Report HTML dei risultati
 

@@ -3,6 +3,7 @@ import threading
 from queue import Queue
 from typing import List
 import argparse
+from tqdm import tqdm
 
 NUM_THREADS = 150
 SOCK_TIMEOUT = 0.5
@@ -17,7 +18,8 @@ ascii_art = r"""
 |__/          |__/    |__/      \______/ |__/         \___/   \______/  \_______/ \_______/|__/  |__/|__/  |__/ \_______/|__/      
 """
 
-
+progress_bar = None
+progress_lock = threading.Lock()
 coda:Queue = Queue() 
 open_ports:List[tuple[int,str]] = []
 lock = threading.Lock()
@@ -47,13 +49,17 @@ def fill_queue(port_list: range)-> None:
 
 
 def worker()-> None: 
+    global progress_bar
     while not coda.empty():
         port = coda.get() #type:ignore
         is_open,banner = portscan(port) #type: ignore
         if is_open:
             with lock:
-                open_ports.append(port,banner) # pyright: ignore[reportCallIssue]
+                open_ports.append((port,banner)) # pyright: ignore[reportCallIssue]
         coda.task_done()
+        if progress_bar is not None:
+            with progress_lock:
+                progress_bar.update(1)
 
 thread_list = []
 
@@ -79,6 +85,8 @@ def main() -> None:
         parser.error("Port range must be within 1-65535 and START must be <= END")
 
     fill_queue(range(start_port, end_port + 1))
+    global progress_bar
+    progress_bar = tqdm(total= end_port - start_port + 1, desc=f"Scanning {target}", unit="port")
 
     threads = [
         threading.Thread(target=worker)
@@ -89,6 +97,8 @@ def main() -> None:
         t.start()
     for t in threads:
         t.join()
+        if progress_bar is not None: # type: ignore
+            progress_bar.close()
 
     for port,banner in sorted(open_ports):
         print(f"Port: {port} is open -> {banner}")
