@@ -182,7 +182,7 @@ python scanner.py
 - [X] Banner grabbing per identificare i servizi
 - [X] Output su file `.json` / `.txt`
 - [X] Progress bar con `tqdm`
-- [ ] Supporto UDP scan
+- [X] Supporto UDP scan
 - [ ] Report HTML dei risultati
 
 ---
