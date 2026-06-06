@@ -19,24 +19,26 @@ ascii_art = r"""
 
 
 coda:Queue = Queue() 
-open_ports:List[int] = []
+open_ports:List[tuple[int,str]] = []
 lock = threading.Lock()
 target = "127.0.0.1"
 sock_timeout = SOCK_TIMEOUT
 
 
-def portscan(port:int)-> bool: 
+def portscan(port:int)-> tuple[bool,str]: 
     try:
         #Creiamo la socket
         #con [AF_INET] Stiamo dicendo che questa è una socket legata a Internet, con [SOCK_STREAM] stiamo dicendo che stiamo utilizzando come protocollo TCP
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
         sock.settimeout(sock_timeout)
         sock.connect((target,port))
+        #Banner Grabbing
+        banner = sock.recv(1024).decode("utf-8",errors = "ignore").strip()
         sock.close()
-        return True
+        return True,banner
     
     except(socket.timeout, ConnectionRefusedError, OSError):
-        return False
+        return False,""
 
 
 def fill_queue(port_list: range)-> None: 
@@ -46,11 +48,11 @@ def fill_queue(port_list: range)-> None:
 
 def worker()-> None: 
     while not coda.empty():
-        port = coda.get() 
-        if portscan(port):
+        port = coda.get() #type:ignore
+        is_open,banner = portscan(port) #type: ignore
+        if is_open:
             with lock:
-                open_ports.append(port)
-                print(f"[+] Port {port} is open")
+                open_ports.append(port,banner) # pyright: ignore[reportCallIssue]
         coda.task_done()
 
 thread_list = []
@@ -88,7 +90,8 @@ def main() -> None:
     for t in threads:
         t.join()
 
-    print(f"\n[*] Scan complete. Open ports: {sorted(open_ports)}")
+    for port,banner in sorted(open_ports):
+        print(f"Port: {port} is open -> {banner}")
 
 
 if __name__ == "__main__":
