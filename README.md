@@ -180,7 +180,7 @@ python scanner.py
 
 - [X] Argomenti CLI con `argparse` (target, range, threads, timeout)
 - [X] Banner grabbing per identificare i servizi
-- [ ] Output su file `.json` / `.txt`
+- [X] Output su file `.json` / `.txt`
 - [X] Progress bar con `tqdm`
 - [ ] Supporto UDP scan
 - [ ] Report HTML dei risultati

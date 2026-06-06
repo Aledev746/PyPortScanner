@@ -1,8 +1,9 @@
 import socket
+import json
 import threading
+import argparse
 from queue import Queue
 from typing import List
-import argparse
 from tqdm import tqdm
 
 NUM_THREADS = 150
@@ -17,7 +18,7 @@ ascii_art = r"""
 | $$          | $$    | $$     |  $$$$$$/| $$        |  $$$$/|  $$$$$$/|  $$$$$$$|  $$$$$$$| $$  | $$| $$  | $$|  $$$$$$$| $$      
 |__/          |__/    |__/      \______/ |__/         \___/   \______/  \_______/ \_______/|__/  |__/|__/  |__/ \_______/|__/      
 """
-
+output_format = None
 progress_bar = None
 progress_lock = threading.Lock()
 coda:Queue = Queue() 
@@ -70,9 +71,11 @@ def main() -> None:
     parser.add_argument("-r", "--range", default="1-1024", help="Port range to scan, format START-END (default: 1-1024)")
     parser.add_argument("-t", "--threads", type=int, default=NUM_THREADS, help=f"Number of worker threads (default: {NUM_THREADS})")
     parser.add_argument("--timeout", type=float, default=SOCK_TIMEOUT, help=f"Socket timeout in seconds (default: {SOCK_TIMEOUT})")
+    parser.add_argument("--output", choices=["txt", "json"], default=None, help="Save results to file format: txt or json")
     args = parser.parse_args()
 
-    global target, sock_timeout
+    global target, sock_timeout, output_format
+    output_format = args.output
     target = args.target
     sock_timeout = args.timeout
 
@@ -97,11 +100,34 @@ def main() -> None:
         t.start()
     for t in threads:
         t.join()
-        if progress_bar is not None: # type: ignore
-            progress_bar.close()
+    if progress_bar is not None:  # type: ignore
+        progress_bar.close()
 
-    for port,banner in sorted(open_ports):
-        print(f"Port: {port} is open -> {banner}")
+    sorted_open_ports = sorted(open_ports)
+
+    if output_format is None:
+        for port, banner in sorted_open_ports:
+            print(f"Port: {port} is open -> {banner}")
+
+    if output_format == "txt":
+        with open("portscanner.txt", "w", encoding="utf-8") as file:
+            for port, banner in sorted_open_ports:
+                file.write(f"Port: {port} is open -> {banner}\n")
+        print("Results saved to portscanner.txt")
+
+    if output_format == "json":
+        results = [
+            {"port": port, "banner": banner}
+            for port, banner in sorted_open_ports
+        ]
+        data = {
+            "target": target,
+            "open_ports": results,
+        }
+        with open("portscanner.json", "w", encoding="utf-8") as file:
+            json.dump(data, file, indent=2)
+        print("Results saved to portscanner.json")
+
 
 
 if __name__ == "__main__":
