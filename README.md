@@ -15,6 +15,26 @@ A fast, multi-threaded port scanner written in Python. Supports TCP and UDP scan
 
 ---
 
+## Table of Contents
+
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Positional Arguments](#positional-arguments)
+  - [Optional Arguments](#optional-arguments)
+- [Examples](#examples)
+- [Output](#output)
+  - [Console](#console-default)
+  - [TXT file](#txt-file-portscannertxt)
+  - [JSON file](#json-file-portscannerjson)
+- [UDP Scan — Status Reference](#udp-scan--status-reference)
+- [Architecture](#architecture)
+- [Legal Disclaimer](#️-legal-disclaimer)
+- [License](#license)
+
+---
+
 ## Features
 
 - **TCP & UDP scanning** — run either protocol individually or both simultaneously
